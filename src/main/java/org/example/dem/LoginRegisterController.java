@@ -28,6 +28,7 @@ public class LoginRegisterController {
 
     private ObjectMapper objectMapper = new ObjectMapper();
     private File userFile = new File("users.json");
+    private Stage primaryStage;
 
     @FXML
     public void initialize() {
@@ -50,6 +51,7 @@ public class LoginRegisterController {
             if (users.containsKey(username) && users.get(username).equals(password)) {
                 System.out.println("Login successful!");
                 openChatWindow(username);
+                closeLoginWindow();
             } else {
                 System.out.println("Invalid username or password!");
             }
@@ -66,15 +68,26 @@ public class LoginRegisterController {
             RegisterController controller = loader.getController();
             controller.setPrimaryStage((Stage) registerButton.getScene().getWindow());
 
+            // Закрыть окно логина
+            Stage loginStage = (Stage) loginButton.getScene().getWindow();
+            loginStage.close();
+
+            // Передать метод возврата в RegisterController
+            controller.setOnBack(() -> {
+                // Когда нажата кнопка back, откроем окно логина обратно
+                loginStage.show();
+            });
+
             Stage registerStage = new Stage();
             registerStage.initModality(Modality.APPLICATION_MODAL);
             registerStage.setTitle("Register");
             registerStage.setScene(new Scene(root, 300, 200));
-            registerStage.showAndWait();
+            registerStage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     private Map<String, String> readUsersFromFile() throws IOException {
         if (userFile.length() == 0) {
@@ -95,12 +108,17 @@ public class LoginRegisterController {
             chatStage.setTitle("Chat");
             chatStage.setScene(new Scene(root, 400, 300));
             chatStage.show();
-
-            // Close the login window
-            Stage loginStage = (Stage) loginButton.getScene().getWindow();
-            loginStage.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void closeLoginWindow() {
+        Stage loginStage = (Stage) loginButton.getScene().getWindow();
+        loginStage.close();
+    }
+
+    public void setPrimaryStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
     }
 }

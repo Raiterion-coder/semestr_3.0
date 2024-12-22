@@ -10,5 +10,6 @@
     <Label fx:id="userCountLabel" text="Users Online: 0"/>
     <TextArea fx:id="chatArea" editable="false" prefHeight="200" prefWidth="400"/>
     <TextField fx:id="messageField" promptText="Type your message here..." onAction="#sendMessage"/>
+    <Button fx:id="logoutButton" text="Logout" onAction="#logout"/>
     <Button fx:id="sendButton" text="Send" onAction="#sendMessage"/>
 </VBox>

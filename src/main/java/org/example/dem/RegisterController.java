@@ -25,6 +25,7 @@ public class RegisterController {
     private ObjectMapper objectMapper = new ObjectMapper();
     private File userFile = new File("users.json");
     private Stage primaryStage;
+    private Runnable onBack;
 
     @FXML
     public void initialize() {
@@ -39,8 +40,16 @@ public class RegisterController {
 
     @FXML
     private void back() {
-        primaryStage.close();
+        // Закрыть окно регистрации
+        Stage registerStage = (Stage) backButton.getScene().getWindow();
+        registerStage.close();
+
+        // Вернуть управление в окно логина
+        if (onBack != null) {
+            onBack.run();
+        }
     }
+
 
     @FXML
     private void register() {
@@ -56,6 +65,9 @@ public class RegisterController {
                 objectMapper.writeValue(userFile, users);
                 System.out.println("Registration successful!");
                 primaryStage.close();
+                if (onBack != null) {
+                    onBack.run();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -72,4 +84,9 @@ public class RegisterController {
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+    }
+
 }
