@@ -9,10 +9,10 @@ import javafx.stage.Stage;
 public class ChatClient extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("Simple Chat Client");
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/dem/chat_client.fxml"));
+        primaryStage.setTitle("Login/Register");
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/dem/login_register.fxml"));
         Parent root = loader.load();
-        Scene scene = new Scene(root, 400, 300);
+        Scene scene = new Scene(root, 300, 200);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
