@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Scanner;
 
+
 public class ChatClient {
     private static final String SERVER_ADDRESS = "localhost";
     private static final int SERVER_PORT = 12345;
