@@ -7,11 +7,11 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-
 public class ChatServer {
     private static final int PORT = 12345;
     private static List<ClientHandler> clients = new ArrayList<>();
     private static final Logger logger = LoggerFactory.getLogger(ChatServer.class);
+    private static int userCount = 0;
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
@@ -44,8 +44,10 @@ public class ChatServer {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
                 clientName = in.readLine();
+                userCount++;
                 logger.info("{} has joined the chat.", clientName);
                 broadcastMessage(clientName + " has joined the chat.");
+                broadcastUserCount();
 
                 String message;
                 while ((message = in.readLine()) != null) {
@@ -57,14 +59,22 @@ public class ChatServer {
             } finally {
                 closeConnections();
                 clients.remove(this);
+                userCount--;
                 logger.info("{} has left the chat.", clientName);
                 broadcastMessage(clientName + " has left the chat.");
+                broadcastUserCount();
             }
         }
 
         private void broadcastMessage(String message) {
             for (ClientHandler client : clients) {
                 client.out.println(message);
+            }
+        }
+
+        private void broadcastUserCount() {
+            for (ClientHandler client : clients) {
+                client.out.println("USER_COUNT:" + userCount);
             }
         }
 

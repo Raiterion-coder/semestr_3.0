@@ -49,7 +49,7 @@ public class LoginRegisterController {
             Map<String, String> users = readUsersFromFile();
             if (users.containsKey(username) && users.get(username).equals(password)) {
                 System.out.println("Login successful!");
-                openChatWindow();
+                openChatWindow(username);
             } else {
                 System.out.println("Invalid username or password!");
             }
@@ -83,19 +83,20 @@ public class LoginRegisterController {
         return objectMapper.readValue(userFile, HashMap.class);
     }
 
-    private void openChatWindow() {
+    private void openChatWindow(String username) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/dem/chat_client.fxml"));
             Parent root = loader.load();
             ChatClientController controller = loader.getController();
-            controller.setUsername(usernameField.getText());
+            controller.setUsername(username);
+            controller.connectToServer(); // Connect to the server after setting the username
 
             Stage chatStage = new Stage();
             chatStage.setTitle("Chat");
             chatStage.setScene(new Scene(root, 400, 300));
             chatStage.show();
 
-            // Закрыть окно входа
+            // Close the login window
             Stage loginStage = (Stage) loginButton.getScene().getWindow();
             loginStage.close();
         } catch (IOException e) {

@@ -3,6 +3,7 @@ package org.example.dem;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
@@ -16,6 +17,8 @@ public class ChatClientController {
     private TextField messageField;
     @FXML
     private Button sendButton;
+    @FXML
+    private Label userCountLabel;
 
     private Socket socket;
     private BufferedReader in;
@@ -24,10 +27,10 @@ public class ChatClientController {
 
     @FXML
     public void initialize() {
-        connectToServer();
+        // Do not connect to the server here
     }
 
-    private void connectToServer() {
+    public void connectToServer() {
         try {
             socket = new Socket("localhost", 12345);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -40,8 +43,13 @@ public class ChatClientController {
                 try {
                     String message;
                     while ((message = in.readLine()) != null) {
-                        String finalMessage = message;
-                        Platform.runLater(() -> chatArea.appendText(finalMessage + "\n"));
+                        if (message.startsWith("USER_COUNT:")) {
+                            String finalMessage1 = message;
+                            Platform.runLater(() -> updateUserCount(finalMessage1.substring(11)));
+                        } else {
+                            String finalMessage = message;
+                            Platform.runLater(() -> chatArea.appendText(finalMessage + "\n"));
+                        }
                     }
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -63,5 +71,9 @@ public class ChatClientController {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    private void updateUserCount(String userCount) {
+        userCountLabel.setText("Users Online: " + userCount);
     }
 }
