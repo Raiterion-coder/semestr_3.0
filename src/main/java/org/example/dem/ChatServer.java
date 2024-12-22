@@ -48,11 +48,19 @@ public class ChatServer {
                 logger.info("{} has joined the chat.", clientName);
                 broadcastMessage(clientName + " has joined the chat.");
                 broadcastUserCount();
+                broadcastUserList();
 
                 String message;
                 while ((message = in.readLine()) != null) {
                     logger.info("Received message from {}: {}", clientName, message);
-                    broadcastMessage(clientName + ": " + message);
+                    if (message.startsWith("PRIVATE:")) {
+                        String[] parts = message.split(":", 3);
+                        String recipient = parts[1];
+                        String privateMessage = parts[2];
+                        sendPrivateMessage(recipient, clientName + " (private): " + privateMessage);
+                    } else {
+                        broadcastMessage(clientName + ": " + message);
+                    }
                 }
             } catch (IOException ex) {
                 logger.error("Client error: {}", ex.getMessage());
@@ -63,6 +71,7 @@ public class ChatServer {
                 logger.info("{} has left the chat.", clientName);
                 broadcastMessage(clientName + " has left the chat.");
                 broadcastUserCount();
+                broadcastUserList();
             }
         }
 
@@ -72,9 +81,31 @@ public class ChatServer {
             }
         }
 
+        private void sendPrivateMessage(String recipient, String message) {
+            for (ClientHandler client : clients) {
+                if (client.clientName.equals(recipient)) {
+                    client.out.println(message);
+                    break;
+                }
+            }
+        }
+
         private void broadcastUserCount() {
             for (ClientHandler client : clients) {
                 client.out.println("USER_COUNT:" + userCount);
+            }
+        }
+
+        private void broadcastUserList() {
+            StringBuilder userList = new StringBuilder();
+            for (ClientHandler client : clients) {
+                if (userList.length() > 0) {
+                    userList.append(",");
+                }
+                userList.append(client.clientName);
+            }
+            for (ClientHandler client : clients) {
+                client.out.println("USER_LIST:" + userList.toString());
             }
         }
 

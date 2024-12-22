@@ -58,16 +58,13 @@ public class RegisterController {
             if (users.containsKey(username)) {
                 System.out.println("Username already exists!");
             } else {
-                // Генерация соли и хеширование пароля
                 String salt = PasswordUtils.generateSalt();
                 String hashedPassword = PasswordUtils.hashPassword(password, salt);
 
-                // Сохранение пользователя с хешированным паролем и солью
                 users.put(username, hashedPassword + ":" + salt);
                 objectMapper.writeValue(userFile, users);
                 System.out.println("Registration successful!");
 
-                // Закрытие окна регистрации и возврат к окну входа
                 Stage registerStage = (Stage) registerButton.getScene().getWindow();
                 registerStage.close();
 
