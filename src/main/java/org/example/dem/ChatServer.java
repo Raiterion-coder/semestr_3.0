@@ -1,5 +1,8 @@
 package org.example.dem;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -7,19 +10,20 @@ import java.util.*;
 public class ChatServer {
     private static final int PORT = 12345;
     private static List<ClientHandler> clients = new ArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(ChatServer.class);
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("Server is listening on port " + PORT);
+            logger.info("Server is listening on port {}", PORT);
             while (true) {
                 Socket socket = serverSocket.accept();
-                System.out.println("New client connected");
+                logger.info("New client connected");
                 ClientHandler client = new ClientHandler(socket);
                 clients.add(client);
                 new Thread(client).start();
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("Server error: {}", ex.getMessage());
         }
     }
 
@@ -39,17 +43,20 @@ public class ChatServer {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
                 clientName = in.readLine();
+                logger.info("{} has joined the chat.", clientName);
                 broadcastMessage(clientName + " has joined the chat.");
 
                 String message;
                 while ((message = in.readLine()) != null) {
+                    logger.info("Received message from {}: {}", clientName, message);
                     broadcastMessage(clientName + ": " + message);
                 }
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("Client error: {}", ex.getMessage());
             } finally {
                 closeConnections();
                 clients.remove(this);
+                logger.info("{} has left the chat.", clientName);
                 broadcastMessage(clientName + " has left the chat.");
             }
         }
@@ -72,7 +79,7 @@ public class ChatServer {
                     socket.close();
                 }
             } catch (IOException ex) {
-                ex.printStackTrace();
+                logger.error("Error closing connections: {}", ex.getMessage());
             }
         }
     }
