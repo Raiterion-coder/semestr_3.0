@@ -1,5 +1,6 @@
 package org.example.dem;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,23 +44,26 @@ public class ChatServer {
             try {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
-                clientName = in.readLine();
+                String message = in.readLine();
+                JSONObject jsonMessage = new JSONObject(message);
+                clientName = jsonMessage.getString("username");
                 userCount++;
                 logger.info("{} has joined the chat.", clientName);
-                broadcastMessage(clientName + " has joined the chat.");
+                broadcastMessage(new JSONObject().put("type", "message").put("content", clientName + " has joined the chat.").toString());
                 broadcastUserCount();
                 broadcastUserList();
 
-                String message;
                 while ((message = in.readLine()) != null) {
-                    logger.info("Received message from {}: {}", clientName, message);
-                    if (message.startsWith("PRIVATE:")) {
-                        String[] parts = message.split(":", 3);
-                        String recipient = parts[1];
-                        String privateMessage = parts[2];
-                        sendPrivateMessage(recipient, clientName + " (private): " + privateMessage);
-                    } else {
-                        broadcastMessage(clientName + ": " + message);
+                    jsonMessage = new JSONObject(message);
+                    String type = jsonMessage.getString("type");
+                    if (type.equals("message")) {
+                        String content = jsonMessage.getString("content");
+                        String recipient = jsonMessage.optString("recipient", null);
+                        if (recipient != null && !recipient.isEmpty()) {
+                            sendPrivateMessage(recipient, new JSONObject().put("type", "message").put("content", clientName + " (private): " + content).toString());
+                        } else {
+                            broadcastMessage(new JSONObject().put("type", "message").put("content", clientName + ": " + content).toString());
+                        }
                     }
                 }
             } catch (IOException ex) {
@@ -69,7 +73,7 @@ public class ChatServer {
                 clients.remove(this);
                 userCount--;
                 logger.info("{} has left the chat.", clientName);
-                broadcastMessage(clientName + " has left the chat.");
+                broadcastMessage(new JSONObject().put("type", "message").put("content", clientName + " has left the chat.").toString());
                 broadcastUserCount();
                 broadcastUserList();
             }
@@ -92,7 +96,7 @@ public class ChatServer {
 
         private void broadcastUserCount() {
             for (ClientHandler client : clients) {
-                client.out.println("USER_COUNT:" + userCount);
+                client.out.println(new JSONObject().put("type", "user_count").put("count", userCount).toString());
             }
         }
 
@@ -105,7 +109,7 @@ public class ChatServer {
                 userList.append(client.clientName);
             }
             for (ClientHandler client : clients) {
-                client.out.println("USER_LIST:" + userList.toString());
+                client.out.println(new JSONObject().put("type", "user_list").put("users", userList.toString()).toString());
             }
         }
 

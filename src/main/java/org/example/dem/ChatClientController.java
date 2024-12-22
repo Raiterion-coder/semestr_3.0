@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.*;
@@ -46,21 +47,23 @@ public class ChatClientController {
             socket = new Socket("localhost", 12345);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-            out.println(username);
+            out.println(new JSONObject().put("type", "login").put("username", username).toString());
 
             new Thread(() -> {
                 try {
                     String message;
                     while ((message = in.readLine()) != null) {
-                        if (message.startsWith("USER_COUNT:")) {
+                        JSONObject jsonMessage = new JSONObject(message);
+                        String type = jsonMessage.getString("type");
+                        if (type.equals("user_count")) {
                             String finalMessage1 = message;
-                            Platform.runLater(() -> updateUserCount(finalMessage1.substring(11)));
-                        } else if (message.startsWith("USER_LIST:")) {
+                            Platform.runLater(() -> updateUserCount(jsonMessage.getInt("count")));
+                        } else if (type.equals("user_list")) {
                             String finalMessage2 = message;
-                            Platform.runLater(() -> updateUserList(finalMessage2.substring(10)));
-                        } else {
+                            Platform.runLater(() -> updateUserList(jsonMessage.getString("users")));
+                        } else if (type.equals("message")) {
                             String finalMessage = message;
-                            Platform.runLater(() -> chatArea.appendText(finalMessage + "\n"));
+                            Platform.runLater(() -> chatArea.appendText(jsonMessage.getString("content") + "\n"));
                         }
                     }
                 } catch (IOException ex) {
@@ -76,11 +79,13 @@ public class ChatClientController {
     private void sendMessage() {
         String message = messageField.getText();
         if (!message.isEmpty()) {
+            JSONObject jsonMessage = new JSONObject();
+            jsonMessage.put("type", "message");
+            jsonMessage.put("content", message);
             if (selectedRecipient != null && !selectedRecipient.isEmpty()) {
-                out.println("PRIVATE:" + selectedRecipient + ":" + message);
-            } else {
-                out.println(message);
+                jsonMessage.put("recipient", selectedRecipient);
             }
+            out.println(jsonMessage.toString());
             messageField.clear();
         }
     }
@@ -89,7 +94,7 @@ public class ChatClientController {
         this.username = username;
     }
 
-    private void updateUserCount(String userCount) {
+    private void updateUserCount(int userCount) {
         userCountLabel.setText("Users Online: " + userCount);
     }
 
