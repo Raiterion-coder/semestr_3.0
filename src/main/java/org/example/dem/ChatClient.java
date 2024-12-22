@@ -1,51 +1,23 @@
 package org.example.dem;
 
-import java.io.*;
-import java.net.*;
-import java.util.Scanner;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
-
-public class ChatClient {
-    private static final String SERVER_ADDRESS = "localhost";
-    private static final int SERVER_PORT = 12345;
-    private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
-
-    public static void main(String[] args) {
-        ChatClient client = new ChatClient();
-        client.start();
+public class ChatClient extends Application {
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        primaryStage.setTitle("Simple Chat Client");
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/dem/chat_client.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root, 400, 300);
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
-    public void start() {
-        try {
-            socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
-
-            // Send the client name to the server
-            Scanner scanner = new Scanner(System.in);
-            System.out.print("Enter your name: ");
-            String clientName = scanner.nextLine();
-            out.println(clientName);
-
-            new Thread(() -> {
-                try {
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        System.out.println(message);
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }).start();
-
-            while (true) {
-                String message = scanner.nextLine();
-                out.println(message);
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+    public static void main(String[] args) {
+        launch(args);
     }
 }

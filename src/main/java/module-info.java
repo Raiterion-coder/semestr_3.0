@@ -1,16 +1,23 @@
-module org.example.dem {
+module org.example.tetetete {
+    requires org.slf4j;
+    requires ch.qos.logback.classic;
+    requires ch.qos.logback.core;
+    requires javafx.graphics;
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.web;
-    requires org.slf4j;
+    requires java.sql;
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
     requires net.synedra.validatorfx;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
-    //requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.core;
+    requires spring.security.crypto;
+    requires spring.security.core;
 
-    opens org.example.dem to javafx.fxml;
+    opens org.example.dem to javafx.fxml, javafx.graphics;
     exports org.example.dem;
 }
