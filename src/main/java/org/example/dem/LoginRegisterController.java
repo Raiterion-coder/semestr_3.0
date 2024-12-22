@@ -48,10 +48,19 @@ public class LoginRegisterController {
 
         try {
             Map<String, String> users = readUsersFromFile();
-            if (users.containsKey(username) && users.get(username).equals(password)) {
-                System.out.println("Login successful!");
-                openChatWindow(username);
-                closeLoginWindow();
+            if (users.containsKey(username)) {
+                String storedPasswordHashAndSalt = users.get(username);
+                String[] parts = storedPasswordHashAndSalt.split(":");
+                String storedHash = parts[0];
+                String storedSalt = parts[1];
+
+                if (PasswordUtils.verifyPassword(password, storedHash, storedSalt)) {
+                    System.out.println("Login successful!");
+                    openChatWindow(username);
+                    closeLoginWindow();
+                } else {
+                    System.out.println("Invalid username or password!");
+                }
             } else {
                 System.out.println("Invalid username or password!");
             }
@@ -68,13 +77,10 @@ public class LoginRegisterController {
             RegisterController controller = loader.getController();
             controller.setPrimaryStage((Stage) registerButton.getScene().getWindow());
 
-            // Закрыть окно логина
             Stage loginStage = (Stage) loginButton.getScene().getWindow();
             loginStage.close();
 
-            // Передать метод возврата в RegisterController
             controller.setOnBack(() -> {
-                // Когда нажата кнопка back, откроем окно логина обратно
                 loginStage.show();
             });
 
@@ -87,7 +93,6 @@ public class LoginRegisterController {
             e.printStackTrace();
         }
     }
-
 
     private Map<String, String> readUsersFromFile() throws IOException {
         if (userFile.length() == 0) {
@@ -102,7 +107,7 @@ public class LoginRegisterController {
             Parent root = loader.load();
             ChatClientController controller = loader.getController();
             controller.setUsername(username);
-            controller.connectToServer(); // Connect to the server after setting the username
+            controller.connectToServer();
 
             Stage chatStage = new Stage();
             chatStage.setTitle("Chat");

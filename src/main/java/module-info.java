@@ -17,6 +17,7 @@ module org.example.dem {
     requires com.fasterxml.jackson.core;
     requires spring.security.crypto;
     requires spring.security.core;
+    requires org.json;
 
     opens org.example.dem to javafx.fxml, javafx.graphics;
     exports org.example.dem;

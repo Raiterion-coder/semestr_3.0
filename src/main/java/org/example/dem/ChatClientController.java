@@ -3,7 +3,6 @@ package org.example.dem;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
 
 import java.io.*;
@@ -11,15 +10,15 @@ import java.net.*;
 
 public class ChatClientController {
     @FXML
-    private TextArea chatArea;  // область для отображения сообщений
+    private TextArea chatArea;
     @FXML
-    private TextField messageField;  // поле для ввода сообщения
+    private TextField messageField;
     @FXML
-    private Button sendButton;  // кнопка отправки сообщения
+    private Button sendButton;
     @FXML
-    private Button logoutButton;  // кнопка выхода
+    private Label userCountLabel;
     @FXML
-    private Label userCountLabel;  // метка для отображения количества пользователей онлайн
+    private Button logoutButton;
 
     private Socket socket;
     private BufferedReader in;
@@ -28,21 +27,16 @@ public class ChatClientController {
 
     @FXML
     public void initialize() {
-        // инициализация - можно добавить дополнительные настройки, если необходимо
+        logoutButton.setOnAction(event -> logout());
     }
 
-    // Метод для подключения к серверу
     public void connectToServer() {
         try {
-            // Создаем соединение с сервером (localhost, порт 12345)
             socket = new Socket("localhost", 12345);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-
-            // Отправляем имя пользователя на сервер
             out.println(username);
 
-            // Запускаем поток для получения сообщений от сервера
             new Thread(() -> {
                 try {
                     String message;
@@ -64,31 +58,27 @@ public class ChatClientController {
         }
     }
 
-    // Метод для отправки сообщения
     @FXML
     private void sendMessage() {
         String message = messageField.getText();
         if (!message.isEmpty()) {
             out.println(message);
-            messageField.clear();  // очищаем поле ввода
+            messageField.clear();
         }
     }
 
-    // Устанавливаем имя пользователя
     public void setUsername(String username) {
         this.username = username;
     }
 
-    // Обновляем количество пользователей, которые в сети
     private void updateUserCount(String userCount) {
         userCountLabel.setText("Users Online: " + userCount);
     }
 
-    // Метод для выхода из чата с подтверждением
     @FXML
     private void logout() {
         // Создаем окно подтверждения выхода
-        Alert alert = new Alert(AlertType.CONFIRMATION);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Exit");
         alert.setHeaderText("Are you sure you want to exit?");
         alert.setContentText("You will be disconnected from the chat.");
@@ -99,12 +89,10 @@ public class ChatClientController {
                 // Закрыть соединение и выйти из чата
                 closeConnection();
                 Stage stage = (Stage) logoutButton.getScene().getWindow();
-                stage.close();  // Закрыть окно чата
+                stage.close();
             }
         });
     }
-
-    // Метод для закрытия соединения с сервером
     private void closeConnection() {
         try {
             if (out != null) {
@@ -118,6 +106,28 @@ public class ChatClientController {
             }
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public void login(String username, String password) {
+        boolean isLoggedIn = UserManager.loginUser(username, password);
+        if (isLoggedIn) {
+            System.out.println("Login successful!");
+            setUsername(username);
+            connectToServer();
+        } else {
+            System.out.println("Invalid username or password.");
+        }
+    }
+
+    public void register(String username, String password) {
+        boolean isRegistered = UserManager.registerUser(username, password);
+        if (isRegistered) {
+            System.out.println("Registration successful!");
+            setUsername(username);
+            connectToServer();
+        } else {
+            System.out.println("Username already exists!");
         }
     }
 }

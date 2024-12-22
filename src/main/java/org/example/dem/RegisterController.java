@@ -40,16 +40,13 @@ public class RegisterController {
 
     @FXML
     private void back() {
-        // Закрыть окно регистрации
         Stage registerStage = (Stage) backButton.getScene().getWindow();
         registerStage.close();
 
-        // Вернуть управление в окно логина
         if (onBack != null) {
             onBack.run();
         }
     }
-
 
     @FXML
     private void register() {
@@ -61,10 +58,19 @@ public class RegisterController {
             if (users.containsKey(username)) {
                 System.out.println("Username already exists!");
             } else {
-                users.put(username, password);
+                // Генерация соли и хеширование пароля
+                String salt = PasswordUtils.generateSalt();
+                String hashedPassword = PasswordUtils.hashPassword(password, salt);
+
+                // Сохранение пользователя с хешированным паролем и солью
+                users.put(username, hashedPassword + ":" + salt);
                 objectMapper.writeValue(userFile, users);
                 System.out.println("Registration successful!");
-                primaryStage.close();
+
+                // Закрытие окна регистрации и возврат к окну входа
+                Stage registerStage = (Stage) registerButton.getScene().getWindow();
+                registerStage.close();
+
                 if (onBack != null) {
                     onBack.run();
                 }
@@ -88,5 +94,4 @@ public class RegisterController {
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
     }
-
 }
