@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 
 import java.io.*;
 import java.net.*;
@@ -21,6 +20,7 @@ public class ChatClientController {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+    private String username;
 
     @FXML
     public void initialize() {
@@ -34,7 +34,7 @@ public class ChatClientController {
             out = new PrintWriter(socket.getOutputStream(), true);
 
             // Send the client name to the server
-            out.println("Client");
+            out.println(username);
 
             new Thread(() -> {
                 try {
@@ -59,5 +59,9 @@ public class ChatClientController {
             out.println(message);
             messageField.clear();
         }
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }
